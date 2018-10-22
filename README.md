@@ -51,28 +51,29 @@ The following are the projects located in the solution:
 
 ## Design
 
-[[https://github.com/atml1/backend-coding-challenge/blob/master/Documentation/Design.png]]
+![Design](https://raw.githubusercontent.com/atml1/backend-coding-challenge/master/Documentation/Design.png)
 
 The design was created with extensibility in mind. Most of the classes implement an interface and use other components through interfaces so that implementations can change without affecting other components.
 
 ### NacyRestServer project
 
-The classes in NancyRestServer project (**Program**, **CityModule**, **CustomBootstrapper**) are all used to set up the Nancy framework to host the **CityService** class located in the CityService project. The **AppConfiguration** class is used to read configuration information from the App.config file. This approach allows configuration changes without recompiling the code. **AppConfiguration** implements *IConfiguration* so that changes to where the configuration data comes from (e.g. file, database, windows registry) can be updated easily.
+The classes in NancyRestServer project (**Program**, **CityModule**, **CustomBootstrapper**) are all used to set up the Nancy framework to host the **CityService** class located in the CityService project. The **AppConfiguration** class is used to read configuration information from the App.config file. This approach allows configuration changes without recompiling the code. **AppConfiguration** implements *IAppConfiguration* so that changes to where the configuration data comes from (e.g. file, database, windows registry, etc) can be updated easily.
 
 ### CityService project
 
-The **CityService** class in the CityServer project is the entry point into the logic of the solution. When AutoComplete is called, it uses *ICityStorage* to retrieve a list of possibly cities that start with the letters specified. This list of cities is scored using the *IScorer* to find how likely is the match given the name and location of the city. The **CityService** sorts this list and truncates it based on the specified number of responses to return. Finally the list of cities is converted to a list of **Suggestion** which is passed to the *ISerializer* to convert to a string and returned to the caller.
+The **CityService** class in the CityServer project is the entry point into the logic of the solution. When AutoComplete (from the interface) is called, it uses *ICityStorage* to retrieve a list of possibly cities that start with the letters specified. This list of cities is scored using the *IScorer* to find how likely is the match given the name and location of the city. The **CityService** sorts this list and truncates it based on the specified number of responses to return. Finally the list of cities is converted to a list of **Suggestion** which is passed to the *ISerializer* to convert to a string and returned to the caller.
 
 The implementations for *IScorer* and *ISerializer* are **Scorer** and **JsonSerializer** respectively. They are currently straight forward, but the interface architecture allows them to be more complex in the future if needed.
 
-The implementation for *ICityStorage* is **CityStorage**, which is a bit more complex. This class is the one in charge of reading and parsing the provided data file. With the names of the city in the file, it populates the *IWordStorage* for quick look up based on the beginning of a city name. The **CityStorage**, though, stores additional information about the city including its latitude/longitude and full name (with province/state and country). This all happens one time, on startup. When a request is made to GetCitiesStartsWith it looks for all possible city names in the *IWordStorage* and then finds all the **City** objects stored with those names to return.
+The implementation for *ICityStorage* is **CityStorage**, which is a bit more complex. This class is in charge of reading and parsing the provided data file. With the names of the cities in the file, it populates the *IWordStorage* for quick look up based on the beginning of a city name. The **CityStorage** also internally stores additional information about the city including its latitude/longitude and full name (with province/state and country). This population process happens one time, on startup. When a request is made to GetCitiesStartsWith, it looks for all possible city names in the *IWordStorage* and then finds in its internal storage all the **City** objects. It returns those **City** objects to the caller.
 
-[[https://github.com/atml1/backend-coding-challenge/blob/master/Documentation/WordTree.png]]
+![Word Tree](https://raw.githubusercontent.com/atml1/backend-coding-challenge/master/Documentation/WordTree.png)
 
-The implementation of *IWordStorage* is **WordTree**. This data structure stores each word as a path in a tree where each node is a letter of the word. The above image represents a word tree that encodes 4 words: AMOS, LONDON, LONDONTOWNE, and LONDONDERRY. This datastructure is efficient to:
-    - create: O(n) with regards to number of character in all words
-    - search: O(n) with regards to the number of character passed as the beginning of the word
-    - storage: O(n) with regards to number of characters in all words (but likely much less since many characters are stored using the same node, especially near the top of the tree)
+The implementation of *IWordStorage* is **WordTree**. This data structure stores each word as a path in a tree where each tranversal from one node to another represents a letter of the word. The above image represents a word tree that encodes 4 words: AMOS, LONDON, LONDONTOWNE, and LONDONDERRY. This datastructure is efficient to:
+
+- create: O(n) with regards to number of characters in all words
+- search: O(n) with regards to the number of characters in all returned words
+- store: O(n) with regards to number of characters in all words (but likely much less since many characters from different words are stored using the same paths, especially near the top of the tree)
 
 ## Sample responses
 
