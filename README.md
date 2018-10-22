@@ -1,5 +1,5 @@
-# Coveo Backend Coding Challenge
-(inspired by https://github.com/busbud/coding-challenge-backend-c)
+# Coveo Backend Coding Challenge Solution
+(forked from https://github.com/coveo/backend-coding-challenge)
 
 ## Requirements
 
@@ -14,22 +14,65 @@ Design a REST API endpoint that provides auto-complete suggestions for large cit
     - Each suggestion has a name which can be used to disambiguate between similarly named locations
     - Each suggestion has a latitude and longitude
 
-## "The rules"
+## Additional Requirements
 
-- *You can use the language and technology of your choosing.* It's OK to try something new (tell us if you do), but feel free to use something you're comfortable with. We don't care if you use something we don't; the goal here is not to validate your knowledge of a particular technology.
-- End result should be deployed on a public Cloud (Heroku, AWS etc. all have free tiers you can use).
+The following is a list of additional requirements that although wasn't explicitly mentioned, makes sense:
 
-## Advice
+- The number of results should be limited, based on the querystring parameter `maxcount`. To allow the original requirement where all results may be returned, this additional parameter can be set to -1 to indicate all results.
 
-- **Try to design and implement your solution as you would do for real production code**. Show us how you create clean, maintainable code that does awesome stuff. Build something that we'd be happy to contribute to. This is not a programming contest where dirty hacks win the game.
-- Documentation and maintainability are a plus, and don't you forget those unit tests.
-- We don’t want to know if you can do exactly as asked (or everybody would have the same result). We want to know what **you** bring to the table when working on a project, what is your secret sauce. More features? Best solution? Thinking outside the box?
+## Technologies used
 
-## Can I use a database?
+The following is a list of different technologies used to accomplish the task:
 
-If you wish, it's OK to use external systems such as a database, an Elastic index, etc. in your solution. But this is certainly not required to complete the basic requirements of the challenge. Keep in mind that **our goal here is to see some code of yours**; if you only implement a thin API on top of a DB we won't have much to look at.
+- The solution was developed in Visual Studio 2015 using .NET 4.6
+- The unit tests were written using Visual Studio's unit testing tools
+- UML diagrams were created using Dia
+- Deployed onto the cloud via AWS EC2 hosting Windows Server 2012 R2 (new to me)
+    - Contact me for IP.
+- Source code uploaded to GitHub (new to me)
 
-Our advice is that if you choose to use an external search system, you had better be doing something really truly awesome with it.
+## Third party technologies used
+
+The following is a list of third party technologies used
+
+- Nancy (http://nancyfx.org/): A lightweight web framework used to host .NET REST applications. Licensed under MIT license.
+    - This could have been replaced with ASP.NET for a more enterprise level framework, but that complicates the code for this example.
+
+## Projects
+
+The following are the projects located in the solution:
+
+- CityService
+    - This is the library where all the logic is located. 
+- CityServiceTest
+    - This is the library where all the unit tests for the logic is located.
+- NancyRestServer
+    - This is the application that runs the REST server. It routes the calls to the logic located in CityService library.
+
+## Design
+
+[[https://github.com/atml1/backend-coding-challenge/blob/master/Documentation/Design.png]]
+
+The design was created with extensibility in mind. Most of the classes implement an interface and use other components through interfaces so that implementations can change without affecting other components.
+
+### NacyRestServer project
+
+The classes in NancyRestServer project (**Program**, **CityModule**, **CustomBootstrapper**) are all used to set up the Nancy framework to host the **CityService** class located in the CityService project. The **AppConfiguration** class is used to read configuration information from the App.config file. This approach allows configuration changes without recompiling the code. **AppConfiguration** implements *IConfiguration* so that changes to where the configuration data comes from (e.g. file, database, windows registry) can be updated easily.
+
+### CityService project
+
+The **CityService** class in the CityServer project is the entry point into the logic of the solution. When AutoComplete is called, it uses *ICityStorage* to retrieve a list of possibly cities that start with the letters specified. This list of cities is scored using the *IScorer* to find how likely is the match given the name and location of the city. The **CityService** sorts this list and truncates it based on the specified number of responses to return. Finally the list of cities is converted to a list of **Suggestion** which is passed to the *ISerializer* to convert to a string and returned to the caller.
+
+The implementations for *IScorer* and *ISerializer* are **Scorer** and **JsonSerializer** respectively. They are currently straight forward, but the interface architecture allows them to be more complex in the future if needed.
+
+The implementation for *ICityStorage* is **CityStorage**, which is a bit more complex. This class is the one in charge of reading and parsing the provided data file. With the names of the city in the file, it populates the *IWordStorage* for quick look up based on the beginning of a city name. The **CityStorage**, though, stores additional information about the city including its latitude/longitude and full name (with province/state and country). This all happens one time, on startup. When a request is made to GetCitiesStartsWith it looks for all possible city names in the *IWordStorage* and then finds all the **City** objects stored with those names to return.
+
+[[https://github.com/atml1/backend-coding-challenge/blob/master/Documentation/WordTree.png]]
+
+The implementation of *IWordStorage* is **WordTree**. This data structure stores each word as a path in a tree where each node is a letter of the word. The above image represents a word tree that encodes 4 words: AMOS, LONDON, LONDONTOWNE, and LONDONDERRY. This datastructure is efficient to:
+    - create: O(n) with regards to number of character in all words
+    - search: O(n) with regards to the number of character passed as the beginning of the word
+    - storage: O(n) with regards to number of characters in all words (but likely much less since many characters are stored using the same node, especially near the top of the tree)
 
 ## Sample responses
 
@@ -37,7 +80,7 @@ These responses are meant to provide guidance. The exact values can vary based o
 
 **Near match**
 
-    GET /suggestions?q=Londo&latitude=43.70011&longitude=-79.4163
+    GET /suggestions?q=Londo&latitude=43.70011&longitude=-79.4163&maxcount=4
 
 ```json
 {
@@ -79,12 +122,3 @@ These responses are meant to provide guidance. The exact values can vary based o
   "suggestions": []
 }
 ```
-
-## References
-
-- Geonames provides city lists Canada and the USA http://download.geonames.org/export/dump/readme.txt
-
-## Getting Started
-
-Begin by forking this repo and cloning your fork. GitHub has apps for [Mac](http://mac.github.com/) and
-[Windows](http://windows.github.com/) that make this easier.
