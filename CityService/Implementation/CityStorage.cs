@@ -139,7 +139,7 @@ namespace CityService.Implementation
             return new City
             {
                 ShortName = name.ToLowerInvariant(), // city names with different capitalization should still be the same city
-                FullName = fullName.ToLowerInvariant(),
+                FullName = fullName,
                 Latitude = latitude,
                 Longitude = longitude
             };
