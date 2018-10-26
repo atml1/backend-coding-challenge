@@ -50,6 +50,7 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
+    <Compile Include="CityServiceTest.cs" />
     <Compile Include="CityStorageTest.cs" />
     <Compile Include="JsonSerializerTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

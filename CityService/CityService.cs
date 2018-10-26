@@ -13,22 +13,34 @@ namespace CityService
 
         public CityService()
         {
+            TsvParser parser = new TsvParser()
+            {
+                Filepath = "cities_canada-usa.tsv"
+            };
             CityStorage cityStorage = new CityStorage
             {
+                Parser = parser,
                 WordStorage = new WordTree()
             };
-            cityStorage.LoadData("cities_canada-usa.tsv");
+            cityStorage.LoadData();
             _cityStorage = cityStorage;
 
             _scorer = new Scorer();
             _serializer = new JsonSerializer();
         }
 
+        public CityService(ICityStorage cityStorage, IScorer scorer, ISerializer serializer)
+        {
+            _cityStorage = cityStorage;
+            _scorer = scorer;
+            _serializer = serializer;
+        }
+
         public string AutoComplete(string q, double? latitudeNullable, double? longitudeNullable, int maxResponseCount)
         {
             if (q == null)
             {
-                return "q not specified.";
+                return "q not specified";
             }
             if (latitudeNullable.HasValue && (latitudeNullable.Value < -90 || latitudeNullable.Value > 90))
             {

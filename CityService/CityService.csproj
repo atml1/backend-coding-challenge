@@ -35,7 +35,9 @@
     <Compile Include="Implementation\CityStorage.cs" />
     <Compile Include="Implementation\JsonSerializer.cs" />
     <Compile Include="Implementation\Scorer.cs" />
+    <Compile Include="Implementation\TsvParser.cs" />
     <Compile Include="Implementation\WordTree.cs" />
+    <Compile Include="Interface\ICityParser.cs" />
     <Compile Include="Interface\ICityStorage.cs" />
     <Compile Include="Interface\City.cs" />
     <Compile Include="Interface\IScorer.cs" />
