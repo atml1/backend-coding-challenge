@@ -46,10 +46,10 @@
   <ItemGroup>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="Nancy">
-      <HintPath>..\..\..\suggestions\SuggestionService\Nancy.dll</HintPath>
+      <HintPath>Nancy.dll</HintPath>
     </Reference>
     <Reference Include="Nancy.Hosting.Self">
-      <HintPath>..\..\..\suggestions\SuggestionService\Nancy.Hosting.Self.dll</HintPath>
+      <HintPath>Nancy.Hosting.Self.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
