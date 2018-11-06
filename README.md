@@ -8,17 +8,12 @@ Design a REST API endpoint that provides auto-complete suggestions for large cit
 - The endpoint is exposed at `/suggestions`
 - The partial (or complete) search term is passed as a querystring parameter `q`
 - The caller's location can optionally be supplied via querystring parameters `latitude` and `longitude` to help improve relative scores
+- The number of results should be limited, based on the querystring parameter `maxcount`. This additional parameter can be set to -1 to indicate all results.
 - The endpoint returns a JSON response with an array of scored suggested matches
     - The suggestions are sorted by descending score
     - Each suggestion has a score between 0 and 1 (inclusive) indicating confidence in the suggestion (1 is most confident)
     - Each suggestion has a name which can be used to disambiguate between similarly named locations
     - Each suggestion has a latitude and longitude
-
-## Additional Requirements
-
-The following is a list of additional requirements that although wasn't explicitly mentioned, makes sense:
-
-- The number of results should be limited, based on the querystring parameter `maxcount`. To allow the original requirement where all results may be returned, this additional parameter can be set to -1 to indicate all results.
 
 ## Technologies used
 
@@ -27,8 +22,6 @@ The following is a list of different technologies used to accomplish the task:
 - The solution was developed in Visual Studio 2015 using .NET 4.6
 - The unit tests were written using Visual Studio's unit testing tools
 - UML diagrams were created using Dia
-- Deployed onto the cloud via AWS EC2 hosting Windows Server 2012 R2 (new to me)
-    - Contact me for IP.
 - Source code uploaded to GitHub (new to me)
 
 ## Third party technologies used
@@ -65,7 +58,7 @@ The **CityService** class in the CityServer project is the entry point into the 
 
 The implementations for *IScorer* and *ISerializer* are **Scorer** and **JsonSerializer** respectively. They are currently straight forward, but the interface architecture allows them to be more complex in the future if needed.
 
-The implementation for *ICityStorage* is **CityStorage**, which is a bit more complex. This class is in charge of reading and parsing the provided data file. With the names of the cities in the file, it populates the *IWordStorage* for quick look up based on the beginning of a city name. The **CityStorage** also internally stores additional information about the city including its latitude/longitude and full name (with province/state and country). This population process happens one time, on startup. When a request is made to GetCitiesStartsWith, it looks for all possible city names in the *IWordStorage* and then finds in its internal storage all the **City** objects. It returns those **City** objects to the caller.
+The implementation for *ICityStorage* is **CityStorage**, which is a bit more complex. This class uses the *ICityParser* to read and parse the cities from a permanent source. The **TsvParser** is an implementation that reads the cities from the provided data file. With the names of the cities, **CityStorage** populates the *IWordStorage* for quick look up based on the beginning of a city name. The **CityStorage** also internally stores additional information about the city including its latitude/longitude and full name (with province/state and country). This population process happens one time, on startup. When a request is made to GetCitiesStartsWith, it looks for all possible city names in the *IWordStorage* and then finds in its internal storage all the **City** objects. It returns those **City** objects to the caller.
 
 ![Word Tree](https://raw.githubusercontent.com/atml1/backend-coding-challenge/master/Documentation/WordTree.png)
 
